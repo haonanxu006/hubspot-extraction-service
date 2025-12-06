@@ -9,107 +9,117 @@ This document explains the [Platform] REST API endpoints required by the [Servic
 The [Service Name] integrates with [Platform] REST API endpoints to extract [object type] information. Below are the required and optional endpoints:
 
 ### ✅ **Required Endpoint (Essential)**
-| **API Endpoint**                    | **Purpose**                          | **Version** | **Required Permissions** | **Usage**    |
-|-------------------------------------|--------------------------------------|-------------|--------------------------|--------------|
-| `/[api_path]/[primary_endpoint]`    | Search and list [objects]           | [API_VERSION] | [Permission_Name]      | **Required** |
+
+| **API Endpoint**        | **Purpose**           | **Version** | **Required Permissions** | **Usage**    |
+| ----------------------- | --------------------- | ----------- | ------------------------ | ------------ |
+| `/crm/v3/objects/deals` | Search and list deals | v3          | crm.objects.deals.read   | **Required** |
 
 ### 🔧 **Optional Endpoints (Advanced Features)**
-| **API Endpoint**                    | **Purpose**                          | **Version** | **Required Permissions** | **Usage**    |
-|-------------------------------------|--------------------------------------|-------------|--------------------------|--------------|
-| `/[api_path]/[endpoint_1]`         | Get detailed [object] information   | [API_VERSION] | [Permission_Name]      | Optional     |
-| `/[api_path]/[endpoint_2]`         | Get [object] [related_data]         | [API_VERSION] | [Permission_Name]      | Optional     |
-| `/[api_path]/[endpoint_3]`         | Get [object] [configuration]        | [API_VERSION] | [Permission_Name]      | Optional     |
-| `/[api_path]/[endpoint_4]`         | Get [object] [additional_data]      | [API_VERSION] | [Permission_Name]      | Optional     |
+
+| **API Endpoint**           | **Purpose**                       | **Version**   | **Required Permissions** | **Usage** |
+| -------------------------- | --------------------------------- | ------------- | ------------------------ | --------- |
+| `/[api_path]/[endpoint_1]` | Get detailed [object] information | [API_VERSION] | [Permission_Name]        | Optional  |
+| `/[api_path]/[endpoint_2]` | Get [object] [related_data]       | [API_VERSION] | [Permission_Name]        | Optional  |
+| `/[api_path]/[endpoint_3]` | Get [object] [configuration]      | [API_VERSION] | [Permission_Name]        | Optional  |
+| `/[api_path]/[endpoint_4]` | Get [object] [additional_data]    | [API_VERSION] | [Permission_Name]        | Optional  |
 
 ### 🎯 **Recommendation**
+
 **Start with only the required endpoint.** The `/[primary_endpoint]` endpoint provides all essential [object] data needed for basic [object type] analytics and extraction.
 
 ---
 
 ## 🔐 Authentication Requirements
 
-### **[Authentication Method] Authentication**
+### **Private App Token Authentication**
+
 ```http
-[AUTH_HEADER]: [AUTH_FORMAT]
+Authorization: Bearer <private_app_token>
 Content-Type: application/json
 ```
 
 ### **Required Permissions**
-- **[Permission_1]**: [Description]
-- **[Permission_2]**: [Description]
+
+- **crm.objects.deals.read**: Read deal objects and their properties
+- **crm.objects.deals.write**: Create, update, or delete deal records
 
 ---
 
-## 🌐 [Platform] API Endpoints
+## 🌐 HubSpot API Endpoints
 
-### 🎯 **PRIMARY ENDPOINT (Required for Basic [Object] Extraction)**
+### 🎯 **PRIMARY ENDPOINT (Required for Basic Deals Extraction)**
 
-### 1. **Search [Objects]** - `/[api_path]/[primary_endpoint]` ✅ **REQUIRED**
+### 1. **Search Deals** - `/crm/v3/objects/deals` ✅ **REQUIRED**
 
-**Purpose**: Get paginated list of all [objects] - **THIS IS ALL YOU NEED FOR BASIC [OBJECT] EXTRACTION**
+**Purpose**: Get paginated list of all deals - **THIS IS ALL YOU NEED FOR BASIC DEAL EXTRACTION**
 
 **Method**: `GET`
 
-**URL**: `https://{baseUrl}/[api_path]/[primary_endpoint]`
+**URL**: `https://{baseUrl}/crm/v3/objects/deals/[primary_endpoint]`
 
 **Query Parameters**:
+
 ```
-?[param1]=[value]&[param2]=[value]&[param3]=[value]
+?limit=10&properties=dealname,amount,dealstage,closedate&archived=false
 ```
 
 **Request Example**:
+
 ```http
-GET https://[your_instance].[platform_domain]/[api_path]/[primary_endpoint]?[param1]=[value]&[param2]=[value]
-[AUTH_HEADER]: [AUTH_VALUE]
+GET https://api.hubapi.com/crm/v3/objects/deals?limit=10&properties=dealname,amount,dealstage,closedate&archived=false
+Authorization: Bearer <private_app_token>
 Content-Type: application/json
 ```
 
-**Response Structure** (Contains ALL essential [object] data):
+**Response Structure** (Contains ALL essential deal data):
+
 ```json
 {
-  "[pagination_start]": 0,
-  "[pagination_size]": 50,
-  "[pagination_total]": 75,
-  "[pagination_last]": false,
-  "[data_array]": [
+  "results": [
     {
-      "[field_id]": "[sample_id]",
-      "[field_url]": "https://[your_instance].[platform_domain]/[api_path]/[primary_endpoint]/[sample_id]",
-      "[field_name]": "[Sample Object Name]",
-      "[field_type]": "[object_type]",
-      "[nested_object]": {
-        "[nested_field_1]": "[value_1]",
-        "[nested_field_2]": "[value_2]",
-        "[nested_field_3]": "[value_3]",
-        "[nested_field_4]": "[value_4]",
-        "[nested_field_5]": "[value_5]"
-      }
-    },
-    {
-      "[field_id]": "[sample_id_2]",
-      "[field_url]": "https://[your_instance].[platform_domain]/[api_path]/[primary_endpoint]/[sample_id_2]", 
-      "[field_name]": "[Another Sample Object]",
-      "[field_type]": "[object_type_2]",
-      "[nested_object]": {
-        "[nested_field_1]": "[value_1]",
-        "[nested_field_2]": "[value_2]",
-        "[nested_field_3]": "[value_3]",
-        "[nested_field_4]": "[value_4]",
-        "[nested_field_5]": "[value_5]"
-      }
+      "id": "12345",
+      "createdAt": "2023-11-07T05:31:56Z",
+      "updatedAt": "2023-11-07T05:31:56Z",
+      "archived": false,
+      "properties": {
+        "dealname": "Big Deal",
+        "amount": "5000",
+        "dealstage": "closedwon",
+        "closedate": "2023-11-07T05:31:56Z"
+      },
+      "associations": {}
     }
-  ]
+  ],
+  "paging": {
+    "next": {
+      "after": "NTI1Cg%3D%3D",
+      "link": "?after=NTI1Cg%3D%3D"
+    },
+    "prev": {
+      "before": "<string>",
+      "link": "<string>"
+    }
+  }
 }
 ```
 
-**✅ This endpoint provides ALL the default [object] fields:**
-- [Field 1], [Field 2], [Field 3]
-- [Field 4] URL
-- [Nested Object] with [Sub-field 1], [Sub-field 2], [Sub-field 3]
-- [Additional Field] and [Display Information]
-- [Reference Field] for [related data]
+**✅ This endpoint provides ALL the default deal fields:**
 
-**Rate Limit**: [X] requests per [time period]
+- `hs_object_id` – HubSpot internal ID for the deal
+- `dealname` – Name/title of the deal
+- `amount` – Deal amount (numeric)
+- `dealstage` – Current stage of the deal
+- `pipeline` – Pipeline ID or name the deal belongs to
+- `createdate` – Deal creation timestamp
+- `closedate` – Deal close timestamp
+- `archived` – Boolean, whether the deal is archived
+- `associations` – Nested object containing related objects:
+  - `contacts` – associated contact IDs
+  - `companies` – associated company IDs
+  - `tickets` – associated ticket IDs
+- `propertiesWithHistory` – Optional: history of selected properties
+
+**Rate Limit**: 100 requests per 10 seconds
 
 ---
 
@@ -128,6 +138,7 @@ Content-Type: application/json
 **URL**: `https://{baseUrl}/[api_path]/[endpoint_1]/{objectId}`
 
 **Request Example**:
+
 ```http
 GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_1]/[sample_id]
 [AUTH_HEADER]: [AUTH_VALUE]
@@ -135,6 +146,7 @@ Content-Type: application/json
 ```
 
 **Response Structure**:
+
 ```json
 {
   "[field_id]": "[sample_id]",
@@ -182,11 +194,13 @@ Content-Type: application/json
 **URL**: `https://{baseUrl}/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]`
 
 **Query Parameters**:
+
 ```
 ?[param1]=[value]&[param2]=[value]&[filter_param]=[filter_value]
 ```
 
 **Request Example**:
+
 ```http
 GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_2]/[sample_id]/[related_endpoint]?[param2]=[value]
 [AUTH_HEADER]: [AUTH_VALUE]
@@ -194,6 +208,7 @@ Content-Type: application/json
 ```
 
 **Response Structure**:
+
 ```json
 {
   "[pagination_start]": 0,
@@ -216,7 +231,7 @@ Content-Type: application/json
     {
       "[related_id]": 2,
       "[related_url]": "https://[your_instance].[platform_domain]/[api_path]/[related_endpoint]/2",
-      "[related_status]": "[status_2]", 
+      "[related_status]": "[status_2]",
       "[related_name]": "[Related Item 2]",
       "[date_start]": "[date_format]",
       "[date_end]": "[date_format]",
@@ -241,6 +256,7 @@ Content-Type: application/json
 **URL**: `https://{baseUrl}/[api_path]/[endpoint_3]/{objectId}/[config_endpoint]`
 
 **Request Example**:
+
 ```http
 GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_3]/[sample_id]/[config_endpoint]
 [AUTH_HEADER]: [AUTH_VALUE]
@@ -248,6 +264,7 @@ Content-Type: application/json
 ```
 
 **Response Structure**:
+
 ```json
 {
   "[field_id]": "[sample_id]",
@@ -317,11 +334,13 @@ Content-Type: application/json
 **URL**: `https://{baseUrl}/[api_path]/[endpoint_4]/{objectId}/[additional_endpoint]`
 
 **Query Parameters**:
+
 ```
 ?[param1]=[value]&[param2]=[value]&[query_param]=[query_value]&[validation_param]=[validation_value]&[fields_param]=[field1],[field2],[field3],[field4]
 ```
 
 **Request Example**:
+
 ```http
 GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_4]/[sample_id]/[additional_endpoint]?[param2]=[value]
 [AUTH_HEADER]: [AUTH_VALUE]
@@ -329,6 +348,7 @@ Content-Type: application/json
 ```
 
 **Response Structure**:
+
 ```json
 {
   "[pagination_start]": 0,
@@ -371,13 +391,14 @@ Content-Type: application/json
 ### 🎯 **SIMPLE FLOW (Recommended - Using Only Required Endpoint)**
 
 ### **Single Endpoint Approach - `/[primary_endpoint]` Only**
+
 ```python
 def extract_all_objects_simple():
     """Extract all [objects] using only the /[primary_endpoint] endpoint"""
     start_at = 0
     batch_size = 50
     all_objects = []
-    
+
     while True:
         response = requests.get(
             f"{base_url}/[api_path]/[primary_endpoint]",
@@ -387,21 +408,21 @@ def extract_all_objects_simple():
             },
             headers=auth_headers
         )
-        
+
         data = response.json()
         objects = data.get("[data_array]", [])
-        
+
         if not objects:  # No more objects
             break
-            
+
         all_objects.extend(objects)
-        
+
         # Check if this is the last page
         if data.get("[pagination_last]", True):
             break
-            
+
         start_at += batch_size
-    
+
     return all_objects
 
 # This gives you ALL essential [object] data:
@@ -417,6 +438,7 @@ def extract_all_objects_simple():
 > **⚠️ Only use this if you need [related_data], [configuration], or [additional_data] data**
 
 ### **Step 1: Batch [Object] Retrieval**
+
 ```python
 # Get [objects] in batches of 50
 for start_at in range(0, total_objects, 50):
@@ -433,6 +455,7 @@ for start_at in range(0, total_objects, 50):
 ```
 
 ### **Step 2: Enhanced [Object] Details (Optional)**
+
 ```python
 # Get detailed information for each [object]
 for obj in objects:
@@ -444,6 +467,7 @@ for obj in objects:
 ```
 
 ### **Step 3: [Object] [Related Data] (Optional)**
+
 ```python
 # Get [related data] for each [specific type] [object]
 for obj in objects:
@@ -457,6 +481,7 @@ for obj in objects:
 ```
 
 ### **Step 4: [Object] Configuration (Optional)**
+
 ```python
 # Get configuration for each [object]
 for obj in objects:
@@ -472,22 +497,25 @@ for obj in objects:
 ## ⚡ Performance Considerations
 
 ### **Rate Limiting**
+
 - **Default Limit**: [X] requests per [time period] per API token
 - **Burst Limit**: [Y] requests per [time period] (short duration)
 - **Best Practice**: Implement exponential backoff on [rate limit response code] responses
 
 ### **Batch Processing**
+
 - **Recommended Batch Size**: [X] [objects] per request
 - **Concurrent Requests**: Max [N] parallel requests ([objects] are complex objects)
 - **Request Interval**: [X]ms between requests to stay under rate limits
 
 ### **Error Handling**
+
 ```http
 # Rate limit exceeded
 HTTP/[rate_limit_code] [Rate Limit Message]
 Retry-After: [retry_seconds]
 
-# Authentication failed  
+# Authentication failed
 HTTP/401 Unauthorized
 
 # Insufficient permissions
@@ -504,12 +532,14 @@ HTTP/404 Not Found
 ### **API Token Permissions**
 
 #### ✅ **Required (Minimum Permissions)**
+
 ```
 Required Scopes:
 - [scope_1] (for basic [object] information)
 ```
 
 #### 🔧 **Optional (Advanced Features)**
+
 ```
 Additional Scopes (only if using optional endpoints):
 - [scope_2] (for [related data] information)
@@ -519,12 +549,16 @@ Additional Scopes (only if using optional endpoints):
 ### **User Permissions**
 
 #### ✅ **Required (Minimum)**
+
 The API token user must have:
+
 - **[Permission_1]** global permission
 - **[Permission_2]** permission
 
 #### 🔧 **Optional (Advanced Features)**
+
 Additional permissions (only if using optional endpoints):
+
 - **[Permission_3]** permission (for [object] configuration details)
 - **[Permission_4]** (for [additional data] access)
 
@@ -533,6 +567,7 @@ Additional permissions (only if using optional endpoints):
 ## 📈 Monitoring & Debugging
 
 ### **Request Headers for Debugging**
+
 ```http
 [AUTH_HEADER]: [AUTH_VALUE]
 Content-Type: application/json
@@ -541,19 +576,21 @@ X-Request-ID: [object]-scan-001-batch-1
 ```
 
 ### **Response Validation**
+
 ```python
 def validate_object_response(object_data):
     required_fields = ["[field_id]", "[field_name]", "[field_type]", "[nested_object]"]
     for field in required_fields:
         if field not in object_data:
             raise ValueError(f"Missing required field: {field}")
-    
+
     # Validate [object] type
     if object_data["[field_type]"] not in ["[type_1]", "[type_2]"]:
         raise ValueError(f"Invalid [object] type: {object_data['[field_type]']}")
 ```
 
 ### **API Usage Metrics**
+
 - Track requests per [time period]
 - Monitor response times
 - Log rate limit headers
@@ -564,6 +601,7 @@ def validate_object_response(object_data):
 ## 🧪 Testing API Integration
 
 ### **Test Authentication**
+
 ```bash
 curl -X GET \
   "https://[your_instance].[platform_domain]/[api_path]/[auth_test_endpoint]" \
@@ -572,6 +610,7 @@ curl -X GET \
 ```
 
 ### **Test [Object] Search**
+
 ```bash
 curl -X GET \
   "https://[your_instance].[platform_domain]/[api_path]/[primary_endpoint]?[size_param]=5" \
@@ -580,6 +619,7 @@ curl -X GET \
 ```
 
 ### **Test [Object] Details**
+
 ```bash
 curl -X GET \
   "https://[your_instance].[platform_domain]/[api_path]/[endpoint_1]/{objectId}" \
@@ -592,16 +632,21 @@ curl -X GET \
 ## 🚨 Common Issues & Solutions
 
 ### **Issue**: 401 Unauthorized
+
 **Solution**: Verify [auth method] and [credential] combination
+
 ```bash
 [verification_command]
 ```
 
 ### **Issue**: 403 Forbidden
+
 **Solution**: Check user has "[Permission_1]" and "[Permission_2]" permissions
 
 ### **Issue**: [Rate Limit Code] Rate Limited
+
 **Solution**: Implement retry with exponential backoff
+
 ```python
 import time
 import random
@@ -617,9 +662,11 @@ def retry_with_backoff(func, max_retries=3):
 ```
 
 ### **Issue**: Empty [Object] List
+
 **Solution**: Check if user has access to [parent objects] with [object type] [objects]
 
-### **Issue**: Need [Related Data]/Configuration But Want to Keep It Simple**
+### **Issue**: Need [Related Data]/Configuration But Want to Keep It Simple\*\*
+
 **Solution**: Start with `/[primary_endpoint]` only. Add optional endpoints later if needed for advanced [object type] analytics
 
 ---
@@ -627,17 +674,20 @@ def retry_with_backoff(func, max_retries=3):
 ## 💡 **Implementation Recommendations**
 
 ### 🎯 **Phase 1: Start Simple (Recommended)**
+
 1. Implement only `/[api_path]/[primary_endpoint]`
 2. Extract basic [object] data ([field_id], [field_name], [field_type], [nested_object] info)
 3. This covers 90% of [object type] analytics needs
 
 ### 🔧 **Phase 2: Add Advanced Features (If Needed)**
+
 1. Add `/[api_path]/[endpoint_1]/{objectId}` for detailed [object] info
-2. Add `/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]` for [related data] analysis  
+2. Add `/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]` for [related data] analysis
 3. Add `/[api_path]/[endpoint_3]/{objectId}/[config_endpoint]` for [workflow type] analysis
 4. Add `/[api_path]/[endpoint_4]/{objectId}/[additional_endpoint]` for [additional functionality]
 
 ### ⚡ **Performance Tip**
+
 - **Simple approach**: 1 API call per [batch_size] [objects]
 - **Advanced approach**: 1 + N API calls (N = number of [objects] for details)
 - Start simple to minimize API usage and complexity!
