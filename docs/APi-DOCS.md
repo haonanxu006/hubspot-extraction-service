@@ -55,7 +55,7 @@ Content-Type: application/json
 ### Development
 
 ```
-http://localhost:[PORT]
+http://localhost:5200
 ```
 
 ### Staging
@@ -73,7 +73,7 @@ https://api.your-domain.com
 ### Swagger Documentation
 
 ```
-http://localhost:[PORT]/docs
+http://localhost:5200/docs
 ```
 
 ## 📊 Common Response Formats

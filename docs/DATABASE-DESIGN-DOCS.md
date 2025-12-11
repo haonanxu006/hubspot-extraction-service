@@ -381,8 +381,6 @@ WHERE scan_id = 'my-scan-001';
 
 ### Result Table Naming
 
-Replace `[result_table]` with your preferred name:
-
 - `scan_results` (generic)
 - `user_results` (specific to user scans)
 - `extraction_results` (for data extraction)
@@ -390,8 +388,6 @@ Replace `[result_table]` with your preferred name:
 - `project_data` (for project information)
 
 ### Result Table Customization Examples
-
-**Replace `[result_table]` and customize fields for your specific data:**
 
 **1. User/People Data:**
 

@@ -1,0 +1,107 @@
+{
+  "success": true,
+  "data": {
+    "tableName": "hubspot_deals",
+    "records": [
+      {
+        "id": "237063311090",
+        "dealname": "Test Deal E",
+        "amount": 100000.0,
+        "dealstage": "qualifiedtobuy",
+        "closedate": "2025-12-31T20:25:34.021000+00:00",
+        "pipeline": "default",
+        "_extracted_at": "2025-12-10T20:36:31.630588+00:00",
+        "_scan_id": "hubspot-deals-test-3",
+        "_organization_id": "unknown",
+        "_page_number": 1,
+        "_source_service": "hubspot_deals",
+        "_dlt_load_id": "1765398988.9672503",
+        "_dlt_id": "v6NIr2sHZgz6gw"
+      },
+      {
+        "id": "237060985543",
+        "dealname": "Test Deal A",
+        "amount": 5000.0,
+        "dealstage": "qualifiedtobuy",
+        "closedate": "2025-12-31T20:22:01.595000+00:00",
+        "pipeline": "default",
+        "_extracted_at": "2025-12-10T20:36:31.621131+00:00",
+        "_scan_id": "hubspot-deals-test-3",
+        "_organization_id": "unknown",
+        "_page_number": 1,
+        "_source_service": "hubspot_deals",
+        "_dlt_load_id": "1765398988.9672503",
+        "_dlt_id": "HiuScpWBQtF6GQ"
+      },
+      {
+        "id": "237059546842",
+        "dealname": "Test Deal C",
+        "amount": 50000.0,
+        "dealstage": "closedwon",
+        "closedate": "2025-12-31T20:24:15.203000+00:00",
+        "pipeline": "default",
+        "_extracted_at": "2025-12-10T20:36:31.610886+00:00",
+        "_scan_id": "hubspot-deals-test-3",
+        "_organization_id": "unknown",
+        "_page_number": 1,
+        "_source_service": "hubspot_deals",
+        "_dlt_load_id": "1765398988.9672503",
+        "_dlt_id": "FjxpzYttN3tclQ"
+      },
+      {
+        "id": "237058828011",
+        "dealname": "Test Deal D",
+        "amount": 75000.0,
+        "dealstage": "closedlost",
+        "closedate": "2025-12-31T20:25:00.153000+00:00",
+        "pipeline": "default",
+        "_extracted_at": "2025-12-10T20:36:31.601816+00:00",
+        "_scan_id": "hubspot-deals-test-3",
+        "_organization_id": "unknown",
+        "_page_number": 1,
+        "_source_service": "hubspot_deals",
+        "_dlt_load_id": "1765398988.9672503",
+        "_dlt_id": "Qt0hA6NiUi4s9w"
+      },
+      {
+        "id": "236780837618",
+        "dealname": "Test Deal B",
+        "amount": 25000.0,
+        "dealstage": "presentationscheduled",
+        "closedate": "2025-12-31T20:23:21.031000+00:00",
+        "pipeline": "default",
+        "_extracted_at": "2025-12-10T20:36:31.585447+00:00",
+        "_scan_id": "hubspot-deals-test-3",
+        "_organization_id": "unknown",
+        "_page_number": 1,
+        "_source_service": "hubspot_deals",
+        "_dlt_load_id": "1765398988.9672503",
+        "_dlt_id": "L29hVxjAT0a/7g"
+      }
+    ],
+    "pagination": {
+      "total": 5,
+      "limit": 100,
+      "offset": 0,
+      "hasMore": false,
+      "totalPages": 1
+    },
+    "availableTables": ["hubspot_deals"],
+    "columns": [
+      "id",
+      "dealname",
+      "amount",
+      "dealstage",
+      "closedate",
+      "pipeline",
+      "_extracted_at",
+      "_scan_id",
+      "_organization_id",
+      "_page_number",
+      "_source_service",
+      "_dlt_load_id",
+      "_dlt_id"
+    ],
+    "scanId": "hubspot-deals-test-3"
+  }
+}

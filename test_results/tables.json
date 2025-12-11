@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "scanId": "hubspot-deals-test-3",
+    "datasetName": "hubspot_users_demo_tenant_3",
+    "tables": [
+      {
+        "name": "hubspot_deals",
+        "rowCount": 5,
+        "extractedCount": 5
+      }
+    ],
+    "totalTables": 1
+  }
+}

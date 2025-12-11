@@ -1,0 +1,21 @@
+{
+  "config": {
+    "scanId": "hubspot-deals-test-3",
+    "organizationId": "demo-tenant-3",
+    "type": ["user"],
+    "auth": {
+      "accessToken": "token"
+    },
+    "filters": {
+      "properties": [
+        "dealname",
+        "amount",
+        "dealstage",
+        "closedate",
+        "pipeline",
+        "description",
+        "dealtype"
+      ]
+    }
+  }
+}
