@@ -1,12 +1,12 @@
-# 📋 [Service Name] - Integration with [Platform] API
+# 📋 HubSpot Deals Extraction Service - Integration with HubSpot API
 
-This document explains the [Platform] REST API endpoints required by the [Service Name] to extract [object type] data from [Platform] instances.
+This document explains the HubSpot REST API endpoints required by the HubSpot Deals Extraction Service to extract deal data from HubSpot instances.
 
 ---
 
 ## 📋 Overview
 
-The [Service Name] integrates with [Platform] REST API endpoints to extract [object type] information. Below are the required and optional endpoints:
+The HubSpot Deals Extraction Service integrates with HubSpot REST API endpoints to extract deal information. Below are the required and optional endpoints:
 
 ### ✅ **Required Endpoint (Essential)**
 
@@ -16,16 +16,16 @@ The [Service Name] integrates with [Platform] REST API endpoints to extract [obj
 
 ### 🔧 **Optional Endpoints (Advanced Features)**
 
-| **API Endpoint**           | **Purpose**                       | **Version**   | **Required Permissions** | **Usage** |
-| -------------------------- | --------------------------------- | ------------- | ------------------------ | --------- |
-| `/[api_path]/[endpoint_1]` | Get detailed [object] information | [API_VERSION] | [Permission_Name]        | Optional  |
-| `/[api_path]/[endpoint_2]` | Get [object] [related_data]       | [API_VERSION] | [Permission_Name]        | Optional  |
-| `/[api_path]/[endpoint_3]` | Get [object] [configuration]      | [API_VERSION] | [Permission_Name]        | Optional  |
-| `/[api_path]/[endpoint_4]` | Get [object] [additional_data]    | [API_VERSION] | [Permission_Name]        | Optional  |
+| **API Endpoint**                                             | **Purpose**                                                      | **Version** | **Required Permissions**                              | **Usage** |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- | ----------- | ----------------------------------------------------- | --------- |
+| `/crm/v3/objects/deals/{dealId}`                             | Retrieve full details of a single deal                           | v3          | crm.objects.deals.read                                | Optional  |
+| `/crm/v3/objects/deals/{dealId}/associations/{objectType}`   | Retrieve associated objects (contacts, companies...) for a deal  | v3          | crm.objects.deals.read                                | Optional  |
+| `/crm/v3/properties/deals`                                   | Retrieve deal property metadata, enumerations, and field configs | v3          | crm.objects.deals.read                                | Optional  |
+| `/crm/v3/objects/deals/{dealId}/associations/{activityType}` | Retrieve emails, notes, tasks associated with a deal             | v3          | crm.objects.deals.read, relevant activity read scopes | Optional  |
 
 ### 🎯 **Recommendation**
 
-**Start with only the required endpoint.** The `/[primary_endpoint]` endpoint provides all essential [object] data needed for basic [object type] analytics and extraction.
+**Start with only the required endpoint.** The `/crm/v3/objects/deals` endpoint provides all essential deal data needed for basic deal analytics and extraction.
 
 ---
 
@@ -34,7 +34,7 @@ The [Service Name] integrates with [Platform] REST API endpoints to extract [obj
 ### **Private App Token Authentication**
 
 ```http
-Authorization: Bearer <private_app_token>
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -55,7 +55,7 @@ Content-Type: application/json
 
 **Method**: `GET`
 
-**URL**: `https://{baseUrl}/crm/v3/objects/deals/[primary_endpoint]`
+**URL**: `https://{baseUrl}/crm/v3/objects/deals`
 
 **Query Parameters**:
 
@@ -67,7 +67,7 @@ Content-Type: application/json
 
 ```http
 GET https://api.hubapi.com/crm/v3/objects/deals?limit=10&properties=dealname,amount,dealstage,closedate&archived=false
-Authorization: Bearer <private_app_token>
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -92,12 +92,8 @@ Content-Type: application/json
   ],
   "paging": {
     "next": {
-      "after": "NTI1Cg%3D%3D",
-      "link": "?after=NTI1Cg%3D%3D"
-    },
-    "prev": {
-      "before": "<string>",
-      "link": "<string>"
+      "after": "12345678",
+      "link": "<link>"
     }
   }
 }
@@ -125,23 +121,23 @@ Content-Type: application/json
 
 ## 🔧 **OPTIONAL ENDPOINTS (Advanced Features Only)**
 
-> **⚠️ Note**: These endpoints are NOT required for basic [object] extraction. Only implement if you need advanced [object] analytics like [feature 1], [feature 2], or [feature 3].
+> **⚠️ Note**: These endpoints are NOT required for basic deal extraction. Only implement if you need advanced deal analytics like validation of individual deals, [feature 2], or [feature 3].
 
-### 2. **Get [Object] Details** - `/[api_path]/[endpoint_1]/{objectId}` 🔧 **OPTIONAL**
+### 2. **Get Deal Details** - `/crm/v3/objects/deals/{dealId}` 🔧 **OPTIONAL**
 
-**Purpose**: Get detailed information for a specific [object]
+**Purpose**: Get detailed information for a specific deal
 
-**When to use**: Only if you need additional [object] metadata not available in search
+**When to use**: Only if you need additional deal metadata not available in search
 
 **Method**: `GET`
 
-**URL**: `https://{baseUrl}/[api_path]/[endpoint_1]/{objectId}`
+**URL**: `https://{baseUrl}/crm/v3/objects/deals/{dealId}`
 
 **Request Example**:
 
 ```http
-GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_1]/[sample_id]
-[AUTH_HEADER]: [AUTH_VALUE]
+GET https://api.hubapi.com/crm/v3/objects/deals/123
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -149,61 +145,46 @@ Content-Type: application/json
 
 ```json
 {
-  "[field_id]": "[sample_id]",
-  "[field_url]": "https://[your_instance].[platform_domain]/[api_path]/[endpoint_1]/[sample_id]",
-  "[field_name]": "[Sample Object Name]",
-  "[field_type]": "[object_type]",
-  "[additional_field_1]": {
-    "[sub_field_1]": [
-      {
-        "[property_1]": "[value_1]",
-        "[property_2]": "[value_2]",
-        "[property_3]": true
-      }
-    ],
-    "[sub_field_2]": [
-      {
-        "[property_4]": "[value_4]",
-        "[property_5]": "[value_5]"
-      }
-    ]
+  "archived": true,
+  "createdAt": "2023-11-07T05:31:56Z",
+  "id": "<string>",
+  "properties": {
+    "dealname": "Big Deal",
+    "amount": "5000",
+    "dealstage": "closedwon",
+    "closedate": "2023-11-07T05:31:56Z"
   },
-  "[nested_object]": {
-    "[nested_field_1]": "[value_1]",
-    "[nested_field_2]": "[value_2]",
-    "[nested_field_3]": "[value_3]",
-    "[nested_field_4]": "[value_4]",
-    "[nested_field_5]": "[value_5]"
-  },
-  "[boolean_field_1]": true,
-  "[boolean_field_2]": false,
-  "[boolean_field_3]": false
+  "updatedAt": "2023-11-07T05:31:56Z",
+  "archivedAt": "2023-11-07T05:31:56Z",
+  "associations": {},
+  "objectWriteTraceId": "<string>",
+  "propertiesWithHistory": {}
 }
 ```
 
 ---
 
-### 3. **Get [Object] [Related Data]** - `/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]` 🔧 **OPTIONAL**
+### 3. **Get Deal Associations** - `/crm/v3/objects/deals/{dealId}/associations/{objectType}` 🔧 **OPTIONAL**
 
-**Purpose**: Get [related data] associated with a [object]
+**Purpose**: Get objects associated with a deal, such as contacts and companies
 
-**When to use**: Only if you need [related data] analysis and [specific metrics]
+**When to use**: Only if you need related object analysis and specific metrics
 
 **Method**: `GET`
 
-**URL**: `https://{baseUrl}/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]`
+**URL**: `https://{baseUrl}/crm/v3/objects/deals/{dealId}/associations/{objectType}`
 
 **Query Parameters**:
 
 ```
-?[param1]=[value]&[param2]=[value]&[filter_param]=[filter_value]
+?limit=100&after=12345678
 ```
 
 **Request Example**:
 
 ```http
-GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_2]/[sample_id]/[related_endpoint]?[param2]=[value]
-[AUTH_HEADER]: [AUTH_VALUE]
+GET https://api.hubapi.com/crm/v3/objects/deals/123456/associations/contacts?limit=10
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -211,111 +192,20 @@ Content-Type: application/json
 
 ```json
 {
-  "[pagination_start]": 0,
-  "[pagination_size]": 50,
-  "[pagination_total]": 25,
-  "[pagination_last]": false,
-  "[data_array]": [
+  "results": [
     {
-      "[related_id]": 1,
-      "[related_url]": "https://[your_instance].[platform_domain]/[api_path]/[related_endpoint]/1",
-      "[related_status]": "[status_1]",
-      "[related_name]": "[Related Item 1]",
-      "[date_start]": "[date_format]",
-      "[date_end]": "[date_format]",
-      "[date_complete]": "[date_format]",
-      "[date_created]": "[date_format]",
-      "[origin_field]": "[sample_id]",
-      "[description_field]": "[Description text]"
+      "id": "12345",
+      "type": "deal_to_contact"
     },
     {
-      "[related_id]": 2,
-      "[related_url]": "https://[your_instance].[platform_domain]/[api_path]/[related_endpoint]/2",
-      "[related_status]": "[status_2]",
-      "[related_name]": "[Related Item 2]",
-      "[date_start]": "[date_format]",
-      "[date_end]": "[date_format]",
-      "[date_created]": "[date_format]",
-      "[origin_field]": "[sample_id]",
-      "[description_field]": "[Description text]"
+      "id": "67890",
+      "type": "deal_to_contact"
     }
-  ]
-}
-```
-
----
-
-### 4. **Get [Object] Configuration** - `/[api_path]/[endpoint_3]/{objectId}/[config_endpoint]` 🔧 **OPTIONAL**
-
-**Purpose**: Get [object] configuration details ([config_type_1], [config_type_2], [config_type_3])
-
-**When to use**: Only if you need [workflow type] and [object] setup analysis
-
-**Method**: `GET`
-
-**URL**: `https://{baseUrl}/[api_path]/[endpoint_3]/{objectId}/[config_endpoint]`
-
-**Request Example**:
-
-```http
-GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_3]/[sample_id]/[config_endpoint]
-[AUTH_HEADER]: [AUTH_VALUE]
-Content-Type: application/json
-```
-
-**Response Structure**:
-
-```json
-{
-  "[field_id]": "[sample_id]",
-  "[field_name]": "[Sample Object Name]",
-  "[field_type]": "[object_type]",
-  "[field_url]": "https://[your_instance].[platform_domain]/[api_path]/[endpoint_3]/[sample_id]/[config_endpoint]",
-  "[location_field]": {
-    "[location_type]": "[location_value]",
-    "[location_identifier]": "[identifier]"
-  },
-  "[filter_field]": {
-    "[filter_id]": "[filter_value]",
-    "[filter_url]": "https://[your_instance].[platform_domain]/[api_path]/[filter_endpoint]/[filter_value]"
-  },
-  "[config_object]": {
-    "[config_array]": [
-      {
-        "[config_name]": "[Config Item 1]",
-        "[config_values]": [
-          {
-            "[config_id]": "[id_1]",
-            "[config_url]": "https://[your_instance].[platform_domain]/[api_path]/[status_endpoint]/[id_1]"
-          }
-        ]
-      },
-      {
-        "[config_name]": "[Config Item 2]",
-        "[config_values]": [
-          {
-            "[config_id]": "[id_2]",
-            "[config_url]": "https://[your_instance].[platform_domain]/[api_path]/[status_endpoint]/[id_2]"
-          }
-        ]
-      },
-      {
-        "[config_name]": "[Config Item 3]",
-        "[config_values]": [
-          {
-            "[config_id]": "[id_3]",
-            "[config_url]": "https://[your_instance].[platform_domain]/[api_path]/[status_endpoint]/[id_3]"
-          }
-        ]
-      }
-    ],
-    "[constraint_type]": "[constraint_value]"
-  },
-  "[estimation_field]": {
-    "[estimation_type]": "[estimation_value]",
-    "[estimation_details]": {
-      "[detail_id]": "[detail_value]",
-      "[detail_name]": "[Detail Display Name]"
+  ],
+  "paging": {
+    "next": {
+      "after": "12345678",
+      "link": "<link>"
     }
   }
 }
@@ -323,27 +213,21 @@ Content-Type: application/json
 
 ---
 
-### 5. **Get [Object] [Additional Data]** - `/[api_path]/[endpoint_4]/{objectId}/[additional_endpoint]` 🔧 **OPTIONAL**
+### 4. **Get Deal Configuration** - `/crm/v3/properties/deals` 🔧 **OPTIONAL**
 
-**Purpose**: Get [additional data] for a [object]
+**Purpose**: Get deal configuration details (Property types, Field labels, Enumerations)
 
-**When to use**: Only if you need [additional data] analysis and [specific functionality]
+**When to use**: Only if you need pipeline and deal-stage workflow and deal setup analysis
 
 **Method**: `GET`
 
-**URL**: `https://{baseUrl}/[api_path]/[endpoint_4]/{objectId}/[additional_endpoint]`
-
-**Query Parameters**:
-
-```
-?[param1]=[value]&[param2]=[value]&[query_param]=[query_value]&[validation_param]=[validation_value]&[fields_param]=[field1],[field2],[field3],[field4]
-```
+**URL**: `https://{baseUrl}/crm/v3/properties/deals`
 
 **Request Example**:
 
 ```http
-GET https://[your_instance].[platform_domain]/[api_path]/[endpoint_4]/[sample_id]/[additional_endpoint]?[param2]=[value]
-[AUTH_HEADER]: [AUTH_VALUE]
+GET https://api.hubapi.com/crm/v3/properties/deals
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -351,36 +235,96 @@ Content-Type: application/json
 
 ```json
 {
-  "[pagination_start]": 0,
-  "[pagination_size]": 50,
-  "[pagination_total]": 120,
-  "[data_key]": [
+  "results": [
     {
-      "[item_id]": "[item_id_value]",
-      "[item_key]": "[ITEM-123]",
-      "[item_url]": "https://[your_instance].[platform_domain]/[api_path]/[item_endpoint]/[item_id_value]",
-      "[item_fields]": {
-        "[summary_field]": "[Item summary text]",
-        "[status_field]": {
-          "[status_id]": "[status_id_value]",
-          "[status_name]": "[Status Name]",
-          "[status_category]": {
-            "[category_id]": 2,
-            "[category_key]": "[category_key]",
-            "[category_color]": "[color-name]"
-          }
+      "displayOrder": 2,
+      "fieldType": "select",
+      "formField": true,
+      "groupName": "contactinformation",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "label": "My Contact Property",
+      "modificationMetadata": {
+        "archivable": true,
+        "readOnlyDefinition": false,
+        "readOnlyOptions": false,
+        "readOnlyValue": false
+      },
+      "name": "my_contact_property",
+      "options": [
+        {
+          "description": "Choice number one",
+          "displayOrder": 1,
+          "hidden": false,
+          "label": "Option A",
+          "value": "A"
         },
-        "[assignee_field]": {
-          "[assignee_id]": "[assignee_account_id]",
-          "[assignee_name]": "[Assignee Name]"
-        },
-        "[priority_field]": {
-          "[priority_id]": "[priority_id_value]",
-          "[priority_name]": "[Priority Level]"
+        {
+          "description": "Choice number two",
+          "displayOrder": 2,
+          "hidden": false,
+          "label": "Option B",
+          "value": "B"
         }
-      }
+      ],
+      "type": "enumeration"
     }
-  ]
+  ],
+  "paging": {
+    "next": {
+      "after": "<string>",
+      "link": "<string>"
+    },
+    "prev": {
+      "before": "<string>",
+      "link": "<string>"
+    }
+  }
+}
+```
+
+---
+
+### 5. **Get Deal Activity Data** - `/crm/v3/objects/deals/{dealId}/associations/{activityType}` 🔧 **OPTIONAL**
+
+**Purpose**: Get activity data for a deal
+
+**When to use**: Only if you need activity analysis
+
+**Method**: `GET`
+
+**URL**: `https://{baseUrl}/crm/v3/properties/deals/{dealId}/associations/{activityType}`
+
+**Query Parameters**:
+
+```
+?limit=10&after=12345678
+```
+
+**Request Example**:
+
+```http
+GET https://api.hubapi.com/crm/v3/objects/deals/12345/associations/emails?limit=10
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Response Structure**:
+
+```json
+{
+  "results": [
+    {
+      "id": "987654",
+      "type": "deal_to_email"
+    }
+  ],
+  "paging": {
+    "next": {
+      "after": "12345678",
+      "link": "<link>"
+    }
+  }
 }
 ```
 
@@ -390,103 +334,104 @@ Content-Type: application/json
 
 ### 🎯 **SIMPLE FLOW (Recommended - Using Only Required Endpoint)**
 
-### **Single Endpoint Approach - `/[primary_endpoint]` Only**
+### **Single Endpoint Approach - `/crm/v3/objects/deals` Only**
 
 ```python
 def extract_all_objects_simple():
-    """Extract all [objects] using only the /[primary_endpoint] endpoint"""
-    start_at = 0
-    batch_size = 50
+    """Extract all deals using only the /crm/v3/objects/deals endpoint"""
     all_objects = []
 
     while True:
         response = requests.get(
-            f"{base_url}/[api_path]/[primary_endpoint]",
+            f"{base_url}/crm/v3/objects/deals",
             params={
-                "[pagination_param]": start_at,
-                "[size_param]": batch_size
+                "after": after,
+                "limit": limit
             },
             headers=auth_headers
         )
 
         data = response.json()
-        objects = data.get("[data_array]", [])
+        objects = data.get("results", [])
 
         if not objects:  # No more objects
             break
 
         all_objects.extend(objects)
 
-        # Check if this is the last page
-        if data.get("[pagination_last]", True):
+        next_cursor = (
+            data.get("paging", {})
+                .get("next", {})
+                .get("after")
+        )
+
+        if not next_cursor:
             break
 
-        start_at += batch_size
+        after = next_cursor
 
     return all_objects
 
-# This gives you ALL essential [object] data:
-# - [field_id], [field_name], [field_type]
-# - [nested_object] with [nested_field_1], [nested_field_2], [nested_field_3]
-# - [field_url] for reference
+# This gives you ALL essential deal data:
+# - id, createdAt, updatedAt
+# - properties: dealname, amount, pipeline, dealstage, closedate, description, dealtype
 ```
 
 ---
 
 ### 🔧 **ADVANCED FLOW (Optional - Multiple Endpoints)**
 
-> **⚠️ Only use this if you need [related_data], [configuration], or [additional_data] data**
+> **⚠️ Only use this if you need related data, full deal schema, or engagement activities data**
 
-### **Step 1: Batch [Object] Retrieval**
+### **Step 1: Batch Deals Retrieval**
 
 ```python
-# Get [objects] in batches of 50
+# Get deals in batches of 50
 for start_at in range(0, total_objects, 50):
     response = requests.get(
-        f"{base_url}/[api_path]/[primary_endpoint]",
+        f"{base_url}/crm/v3/objects/deals",
         params={
-            "[pagination_param]": start_at,
-            "[size_param]": 50
+            "after": after,
+            "limit": limit
         },
         headers=auth_headers
     )
     objects_data = response.json()
-    objects = objects_data.get("[data_array]", [])
+    objects = objects_data.get("results", [])
 ```
 
-### **Step 2: Enhanced [Object] Details (Optional)**
+### **Step 2: Enhanced Dea Details (Optional)**
 
 ```python
-# Get detailed information for each [object]
+# Get detailed information for each deal
 for obj in objects:
     response = requests.get(
-        f"{base_url}/[api_path]/[endpoint_1]/{obj['[field_id]']}",
+        f"{base_url}/crm/v3/objects/deals/{deal_id}",
         headers=auth_headers
     )
     detailed_object = response.json()
 ```
 
-### **Step 3: [Object] [Related Data] (Optional)**
+### **Step 3: Deal Associations (Optional)**
 
 ```python
-# Get [related data] for each [specific type] [object]
-for obj in objects:
-    if obj['[field_type]'] == '[specific_type]':
-        response = requests.get(
-            f"{base_url}/[api_path]/[endpoint_2]/{obj['[field_id]']}/[related_endpoint]",
-            params={"[param2]": 50},
-            headers=auth_headers
-        )
-        object_related_data = response.json()
-```
-
-### **Step 4: [Object] Configuration (Optional)**
-
-```python
-# Get configuration for each [object]
+# Get related contacts or company info
 for obj in objects:
     response = requests.get(
-        f"{base_url}/[api_path]/[endpoint_3]/{obj['[field_id]']}/[config_endpoint]",
+        f"{base_url}/crm/v3/objects/deals/{deal_id}/associations/contacts",
+        params={"limit": limit},
+        headers=auth_headers
+    )
+    object_related_data = response.json()
+```
+
+### **Step 4: Deal Configuration (Optional)**
+
+```python
+# Get configuration for each deal
+for obj in objects:
+    response = requests.get(
+        f"{base_url}/crm/v3/properties/deals",
         headers=auth_headers
     )
     object_config = response.json()
@@ -498,22 +443,22 @@ for obj in objects:
 
 ### **Rate Limiting**
 
-- **Default Limit**: [X] requests per [time period] per API token
-- **Burst Limit**: [Y] requests per [time period] (short duration)
-- **Best Practice**: Implement exponential backoff on [rate limit response code] responses
+- **Default Limit**: 100 requests per 10 seconds per API token
+- **Burst Limit**: 10 requests per second (short duration)
+- **Best Practice**: Implement exponential backoff on HTTP/429 responses
 
 ### **Batch Processing**
 
-- **Recommended Batch Size**: [X] [objects] per request
-- **Concurrent Requests**: Max [N] parallel requests ([objects] are complex objects)
-- **Request Interval**: [X]ms between requests to stay under rate limits
+- **Recommended Batch Size**: 100 deals per request
+- **Concurrent Requests**: Max 3 parallel requests (deals are complex objects)
+- **Request Interval**: 200ms between requests to stay under rate limits
 
 ### **Error Handling**
 
 ```http
 # Rate limit exceeded
-HTTP/[rate_limit_code] [Rate Limit Message]
-Retry-After: [retry_seconds]
+HTTP/429 Too Many Requests
+Retry-After: 2
 
 # Authentication failed
 HTTP/401 Unauthorized
@@ -521,7 +466,7 @@ HTTP/401 Unauthorized
 # Insufficient permissions
 HTTP/403 Forbidden
 
-# [Object] not found
+# Deal not found
 HTTP/404 Not Found
 ```
 
@@ -535,15 +480,15 @@ HTTP/404 Not Found
 
 ```
 Required Scopes:
-- [scope_1] (for basic [object] information)
+- crm.objects.deals.read (for basic deal information)
 ```
 
 #### 🔧 **Optional (Advanced Features)**
 
 ```
 Additional Scopes (only if using optional endpoints):
-- [scope_2] (for [related data] information)
-- [scope_3] (for [object] configuration)
+- crm.objects.deals.read (for contacts associations information)
+- crm.objects.companies.read (for companies associations information)
 ```
 
 ### **User Permissions**
@@ -552,15 +497,15 @@ Additional Scopes (only if using optional endpoints):
 
 The API token user must have:
 
-- **[Permission_1]** global permission
-- **[Permission_2]** permission
+- **CRM Read permission**
+- **Deals read access**
 
 #### 🔧 **Optional (Advanced Features)**
 
 Additional permissions (only if using optional endpoints):
 
-- **[Permission_3]** permission (for [object] configuration details)
-- **[Permission_4]** (for [additional data] access)
+- **Contacts read permission** (for contacts associations)
+- **Companies read permission** (for companies associations)
 
 ---
 
@@ -569,29 +514,29 @@ Additional permissions (only if using optional endpoints):
 ### **Request Headers for Debugging**
 
 ```http
-[AUTH_HEADER]: [AUTH_VALUE]
+Authorization: Bearer <token>
 Content-Type: application/json
-User-Agent: [ServiceName]/1.0
-X-Request-ID: [object]-scan-001-batch-1
+User-Agent: HubSpot-Deals-Extraction-Service/1.0
+X-Request-ID: deal-scan-001-batch-1
 ```
 
 ### **Response Validation**
 
 ```python
 def validate_object_response(object_data):
-    required_fields = ["[field_id]", "[field_name]", "[field_type]", "[nested_object]"]
+    required_fields = ["id", "properties"]
     for field in required_fields:
         if field not in object_data:
             raise ValueError(f"Missing required field: {field}")
 
-    # Validate [object] type
-    if object_data["[field_type]"] not in ["[type_1]", "[type_2]"]:
-        raise ValueError(f"Invalid [object] type: {object_data['[field_type]']}")
+    # Validate deal type
+    if object_data["dealstage"] not in ["qualifiedtobuy", "presentationscheduled", "closedwon", "closedlost"]:
+        raise ValueError(f"Invalid deal type: {object_data['dealstage']}")
 ```
 
 ### **API Usage Metrics**
 
-- Track requests per [time period]
+- Track requests per 10 seconds
 - Monitor response times
 - Log rate limit headers
 - Track authentication failures
@@ -604,26 +549,26 @@ def validate_object_response(object_data):
 
 ```bash
 curl -X GET \
-  "https://[your_instance].[platform_domain]/[api_path]/[auth_test_endpoint]" \
-  -H "[AUTH_HEADER]: [AUTH_VALUE]" \
+  "https://api.hubapi.com/crm/v3/objects/deals?limit=10" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json"
 ```
 
-### **Test [Object] Search**
+### **Test Deal Search**
 
 ```bash
 curl -X GET \
-  "https://[your_instance].[platform_domain]/[api_path]/[primary_endpoint]?[size_param]=5" \
-  -H "[AUTH_HEADER]: [AUTH_VALUE]" \
+  "https://api.hubapi.com/crm/v3/objects/deals?limit=10" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json"
 ```
 
-### **Test [Object] Details**
+### **Test Deal Details**
 
 ```bash
 curl -X GET \
-  "https://[your_instance].[platform_domain]/[api_path]/[endpoint_1]/{objectId}" \
-  -H "[AUTH_HEADER]: [AUTH_VALUE]" \
+  "https://api.hubapi.com/crm/v3/objects/deals/{dealId}" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json"
 ```
 
@@ -633,17 +578,18 @@ curl -X GET \
 
 ### **Issue**: 401 Unauthorized
 
-**Solution**: Verify [auth method] and [credential] combination
+**Solution**: Verify HubSpot Private App token
 
 ```bash
-[verification_command]
+curl -I "https://api.hubapi.com/crm/v3/objects/deals?limit=10" \
+  -H "Authorization: Bearer <token>"
 ```
 
 ### **Issue**: 403 Forbidden
 
-**Solution**: Check user has "[Permission_1]" and "[Permission_2]" permissions
+**Solution**: Check user has "crm.objects.deals.read" permissions
 
-### **Issue**: [Rate Limit Code] Rate Limited
+### **Issue**: 429 Too Many Requests (Rate Limited)
 
 **Solution**: Implement retry with exponential backoff
 
@@ -661,13 +607,13 @@ def retry_with_backoff(func, max_retries=3):
     raise Exception("Max retries exceeded")
 ```
 
-### **Issue**: Empty [Object] List
+### **Issue**: Empty Deals List
 
-**Solution**: Check if user has access to [parent objects] with [object type] [objects]
+**Solution**: Verify that your private app token belongs to the same HubSpot portal where the deals exist
 
-### **Issue**: Need [Related Data]/Configuration But Want to Keep It Simple\*\*
+### **Issue**: Need Deal Associations/Configuration But Want to Keep It Simple
 
-**Solution**: Start with `/[primary_endpoint]` only. Add optional endpoints later if needed for advanced [object type] analytics
+**Solution**: Start with `/crm/v3/objects/deals` only. Add optional endpoints later if needed for advanced object analytics, such as contacts and companies
 
 ---
 
@@ -675,28 +621,27 @@ def retry_with_backoff(func, max_retries=3):
 
 ### 🎯 **Phase 1: Start Simple (Recommended)**
 
-1. Implement only `/[api_path]/[primary_endpoint]`
-2. Extract basic [object] data ([field_id], [field_name], [field_type], [nested_object] info)
-3. This covers 90% of [object type] analytics needs
+1. Implement only `/crm/v3/objects/deals`
+2. Extract basic deal data (id, Deal properties (dealname, amount, pipeline, dealstage...))
+3. This covers 90% of deal analytics needs
 
 ### 🔧 **Phase 2: Add Advanced Features (If Needed)**
 
-1. Add `/[api_path]/[endpoint_1]/{objectId}` for detailed [object] info
-2. Add `/[api_path]/[endpoint_2]/{objectId}/[related_endpoint]` for [related data] analysis
-3. Add `/[api_path]/[endpoint_3]/{objectId}/[config_endpoint]` for [workflow type] analysis
-4. Add `/[api_path]/[endpoint_4]/{objectId}/[additional_endpoint]` for [additional functionality]
+1. Add `/crm/v3/objects/deals/{dealId}` for detailed deal info
+2. Add `/crm/v3/objects/deals/{dealId}/associations/contacts` for conntacts analysis
+3. Add `/crm/v3/properties/deals` for pipeline and dealstage workflow analysis
 
 ### ⚡ **Performance Tip**
 
-- **Simple approach**: 1 API call per [batch_size] [objects]
-- **Advanced approach**: 1 + N API calls (N = number of [objects] for details)
+- **Simple approach**: 1 API call per 100 deals
+- **Advanced approach**: 1 + N API calls (N = number of deals for details)
 - Start simple to minimize API usage and complexity!
 
 ---
 
 ## 📞 Support Resources
 
-- **[Platform] API Documentation**: [API_DOCS_URL]
-- **Rate Limiting Guide**: [RATE_LIMIT_DOCS_URL]
-- **Authentication Guide**: [AUTH_DOCS_URL]
-- **[Object Type] Permissions Reference**: [PERMISSIONS_DOCS_URL]
+- **HubSpot CRM API Documentation**: https://developers.hubspot.com/docs/api/crm/deals
+- **Rate Limiting Guide**: https://developers.hubspot.com/docs/api/usage-details
+- **Authentication Guide**: https://developers.hubspot.com/docs/api/usage-details
+- **HubSpot Deal Permissions Reference**: https://knowledge.hubspot.com/user-management/hubspot-user-permissions-guide
