@@ -9,7 +9,7 @@ This document provides a database schema template for implementing scan job func
 The Scan Job database schema consists of two main tables:
 
 1. **ScanJob** - Core scan job management and tracking
-2. **[ResultTable]** - Storage for scan results and extracted data
+2. **Deal** - Storage for scan results and extracted data
 
 ---
 
@@ -19,26 +19,27 @@ The Scan Job database schema consists of two main tables:
 
 **Purpose**: Core scan job management and status tracking
 
-| **Column Name**         | **Type**    | **Constraints**           | **Description**                          |
-|-------------------------|-------------|---------------------------|------------------------------------------|
-| `id`                    | String      | PRIMARY KEY               | Unique internal identifier               |
-| `scan_id`               | String      | UNIQUE, NOT NULL, INDEX   | External scan identifier                 |
-| `status`                | String      | NOT NULL, INDEX           | pending, running, completed, failed, cancelled |
-| `scan_type`             | String      | NOT NULL                  | Type of scan (user, project, calendar, etc.) |
-| `config`                | JSON        | NOT NULL                  | Scan configuration and parameters        |
-| `organization_id`       | String      | NULLABLE                  | Organization/tenant identifier           |
-| `error_message`         | Text        | NULLABLE                  | Error details if scan failed            |
-| `started_at`            | DateTime    | NULLABLE                  | When scan execution started             |
-| `completed_at`          | DateTime    | NULLABLE                  | When scan finished                      |
-| `total_items`           | Integer     | DEFAULT 0                 | Total items to process                  |
-| `processed_items`       | Integer     | DEFAULT 0                 | Items successfully processed            |
-| `failed_items`          | Integer     | DEFAULT 0                 | Items that failed processing            |
-| `success_rate`          | String      | NULLABLE                  | Calculated success percentage           |
-| `batch_size`            | Integer     | DEFAULT 50                | Processing batch size                   |
-| `created_at`            | DateTime    | NOT NULL                  | Record creation timestamp               |
-| `updated_at`            | DateTime    | NOT NULL                  | Record last update timestamp            |
+| **Column Name**   | **Type** | **Constraints**         | **Description**                                |
+| ----------------- | -------- | ----------------------- | ---------------------------------------------- |
+| `id`              | String   | PRIMARY KEY             | Unique internal identifier                     |
+| `scan_id`         | String   | UNIQUE, NOT NULL, INDEX | External scan identifier                       |
+| `status`          | String   | NOT NULL, INDEX         | pending, running, completed, failed, cancelled |
+| `scan_type`       | String   | NOT NULL                | Type of scan (user, project, calendar, etc.)   |
+| `config`          | JSON     | NOT NULL                | Scan configuration and parameters              |
+| `organization_id` | String   | NULLABLE                | Organization/tenant identifier                 |
+| `error_message`   | Text     | NULLABLE                | Error details if scan failed                   |
+| `started_at`      | DateTime | NULLABLE                | When scan execution started                    |
+| `completed_at`    | DateTime | NULLABLE                | When scan finished                             |
+| `total_items`     | Integer  | DEFAULT 0               | Total items to process                         |
+| `processed_items` | Integer  | DEFAULT 0               | Items successfully processed                   |
+| `failed_items`    | Integer  | DEFAULT 0               | Items that failed processing                   |
+| `success_rate`    | String   | NULLABLE                | Calculated success percentage                  |
+| `batch_size`      | Integer  | DEFAULT 50              | Processing batch size                          |
+| `created_at`      | DateTime | NOT NULL                | Record creation timestamp                      |
+| `updated_at`      | DateTime | NOT NULL                | Record last update timestamp                   |
 
 **Indexes:**
+
 ```sql
 -- Performance indexes
 CREATE INDEX idx_scan_status_created ON scan_jobs(status, created_at);
@@ -49,26 +50,60 @@ CREATE INDEX idx_scan_org_status ON scan_jobs(organization_id, status);
 
 ---
 
-### 2. [ResultTable] Table (Completely Customizable)
+### 2. Deal Table
 
-**Purpose**: Store scan results and extracted data - **CUSTOMIZE FIELDS FOR YOUR DATA TYPE**
+**Purpose**: Store scan results and extracted data
 
-| **Column Name**         | **Type**    | **Constraints**           | **Description**                          |
-|-------------------------|-------------|---------------------------|------------------------------------------|
-| `id`                    | String      | PRIMARY KEY               | Unique result identifier                 |
-| `scan_job_id`           | String      | FOREIGN KEY, NOT NULL     | Reference to scan_jobs.id               |
-| `[custom_field_1]`      | String/JSON | CUSTOMIZABLE              | **Replace with your data fields**       |
-| `[custom_field_2]`      | String/JSON | CUSTOMIZABLE              | **Replace with your data fields**       |
-| `[custom_field_3]`      | String/JSON | CUSTOMIZABLE              | **Replace with your data fields**       |
-| `[custom_field_4]`      | String/JSON | CUSTOMIZABLE              | **Replace with your data fields**       |
-| `[custom_field_5]`      | String/JSON | CUSTOMIZABLE              | **Replace with your data fields**       |
-| `[custom_field_n]`      | String/JSON | CUSTOMIZABLE              | **Add as many fields as needed**        |
-| `created_at`            | DateTime    | NOT NULL                  | Record creation timestamp               |
-| `updated_at`            | DateTime    | NOT NULL                  | Record last update timestamp            |
+| **Column Name**    | **Type** | **Constraints**       | **Description**                                       |
+| ------------------ | -------- | --------------------- | ----------------------------------------------------- |
+| `id`               | String   | PRIMARY KEY           | Unique result ID                                      |
+| `scan_job_id`      | String   | FOREIGN KEY, NOT NULL | Reference to scan_jobs.id                             |
+| `dealname`         | String   | NOT NULL              | The name given to this deal                           |
+| `pipeline`         | String   | NOT NULL              | The pipeline the deal is in                           |
+| `dealstage`        | String   | NOT NULL              | The stage of the deal                                 |
+| `amount`           | Numeric  | NULLABLE              | The total amount of the deal                          |
+| `closedate`        | Datetime | NULLABLE              | Date the deal was closed                              |
+| `dealtype`         | String   | NULLABLE              | The type of deal (newbusiness, existingbusiness)      |
+| `description`      | Text     | NULLABLE              | Description of the deal                               |
+| `_extracted_at`    | Datetime | NOT NULL              | Timestamp when this record was extracted from HubSpot |
+| `_scan_id`         | String   | NOT NULL              | Scan ID used for grouping records                     |
+| `_organization_id` | String   | NOT NULL              | Organization ID for tenant isolation                  |
+| `_page_number`     | Integer  | NULLABLE              | Page number during extraction                         |
+| `_source_service`  | String   | NULLABLE              | Source system ID (hubspot_deals)                      |
+| `created_at`       | DateTime | NOT NULL              | Record creation timestamp                             |
+| `updated_at`       | DateTime | NOT NULL              | Record last update timestamp                          |
 
-**🎯 EXAMPLES - Replace with YOUR custom fields:**
+```sql
+CREATE TABLE hubspot_deals (
+    id VARCHAR PRIMARY KEY,
+    scan_job_id VARCHAR NOT NULL REFERENCES scan_jobs(id),
+    dealname VARCHAR NOT NULL,
+    pipeline VARCHAR NOT NULL,
+    dealstage VARCHAR NOT NULL,
+    amount NUMERIC,
+    closedate TIMESTAMP,
+    dealtype VARCHAR,
+    description TEXT,
+    _extracted_at TIMESTAMP NOT NULL,
+    _scan_id VARCHAR NOT NULL,
+    _organization_id VARCHAR NOT NULL,
+    _page_number INTEGER,
+    _source_service VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+);
+```
+
+**Indexes:**
+
+```sql
+CREATE INDEX idx_deals_scan_job_id ON hubspot_deals (scan_job_id);
+CREATE INDEX idx_deals_organization_id ON hubspot_deals (_organization_id);
+CREATE INDEX idx_deals_stage_pipeline ON hubspot_deals (pipeline, dealstage);
+```
 
 **For User Extraction:**
+
 ```sql
 CREATE TABLE user_results (
     id VARCHAR PRIMARY KEY,
@@ -87,6 +122,7 @@ CREATE TABLE user_results (
 ```
 
 **For Project Extraction:**
+
 ```sql
 CREATE TABLE project_results (
     id VARCHAR PRIMARY KEY,
@@ -105,6 +141,7 @@ CREATE TABLE project_results (
 ```
 
 **For Calendar Events:**
+
 ```sql
 CREATE TABLE calendar_events (
     id VARCHAR PRIMARY KEY,
@@ -123,6 +160,7 @@ CREATE TABLE calendar_events (
 ```
 
 **For Generic JSON Storage:**
+
 ```sql
 CREATE TABLE scan_results (
     id VARCHAR PRIMARY KEY,
@@ -135,6 +173,7 @@ CREATE TABLE scan_results (
 ```
 
 **Indexes (Customize based on your fields):**
+
 ```sql
 -- Basic performance indexes
 CREATE INDEX idx_result_scan_job ON [result_table](scan_job_id);
@@ -146,7 +185,7 @@ CREATE INDEX idx_result_filter ON [result_table]([your_filter_field]);
 
 -- Examples for different data types:
 -- For users: CREATE INDEX idx_user_email ON user_results(email);
--- For projects: CREATE INDEX idx_project_key ON project_results(project_key);  
+-- For projects: CREATE INDEX idx_project_key ON project_results(project_key);
 -- For events: CREATE INDEX idx_event_time ON calendar_events(start_time);
 ```
 
@@ -157,12 +196,14 @@ CREATE INDEX idx_result_filter ON [result_table]([your_filter_field]);
 ## 🔗 Relationships
 
 ### Primary Relationships
+
 ```sql
 -- ScanJob to Results (One-to-Many)
-scan_jobs.id ← [result_table].scan_job_id
+scan_jobs.id ← hubspot_deals.scan_job_id
 ```
 
 ### Cascade Behavior
+
 - **DELETE ScanJob**: Cascades to delete all related results
 
 ---
@@ -173,56 +214,56 @@ scan_jobs.id ← [result_table].scan_job_id
 
 ```sql
 -- Get scan job with status
-SELECT id, scan_id, status, scan_type, total_items, processed_items 
-FROM scan_jobs 
+SELECT id, scan_id, status, scan_type, total_items, processed_items
+FROM scan_jobs
 WHERE scan_id = 'your-scan-id';
 
 -- Get active scans
-SELECT scan_id, status, started_at, scan_type 
-FROM scan_jobs 
-WHERE status IN ('running', 'pending') 
+SELECT scan_id, status, started_at, scan_type
+FROM scan_jobs
+WHERE status IN ('running', 'pending')
 ORDER BY created_at DESC;
 
 -- Get scan progress
-SELECT 
+SELECT
     scan_id,
     total_items,
     processed_items,
-    CASE 
+    CASE
         WHEN total_items > 0 THEN ROUND((processed_items * 100.0 / total_items), 2)
-        ELSE 0 
+        ELSE 0
     END as progress_percentage
-FROM scan_jobs 
+FROM scan_jobs
 WHERE scan_id = 'your-scan-id';
 ```
 
-### Results Management (Customize field names)
+### Results Management
 
 ```sql
--- Get paginated results (REPLACE field names with yours)
-SELECT id, [your_id_field], [your_name_field], [your_status_field]
-FROM [result_table] 
+-- Get paginated results
+SELECT id, dealname, dealname, pipeline, amount, closedate
+FROM hubspot_deals
 WHERE scan_job_id = 'job-id'
-ORDER BY created_at 
+ORDER BY created_at
 LIMIT 100 OFFSET 0;
 
--- Count results by type (REPLACE with your categorization field)
-SELECT [your_category_field], COUNT(*) as count
-FROM [result_table] 
+-- Count results by type
+SELECT dealstage, COUNT(*) as count
+FROM hubspot_deals
 WHERE scan_job_id = 'job-id'
-GROUP BY [your_category_field];
+GROUP BY dealstage;
 
--- Search results (CUSTOMIZE based on your searchable fields)
-SELECT * FROM [result_table] 
-WHERE scan_job_id = 'job-id' 
-AND [your_searchable_field] LIKE '%search_term%';
+-- Search results by deal name
+SELECT * FROM hubspot_deals
+WHERE scan_job_id = 'job-id'
+AND dealname LIKE '%search_term%';
 
 -- Example queries for different data types:
 
 -- For user results:
 -- SELECT user_id, username, email FROM user_results WHERE scan_job_id = 'job-id';
 
--- For project results:  
+-- For project results:
 -- SELECT project_key, project_name FROM project_results WHERE scan_job_id = 'job-id';
 
 -- For calendar events:
@@ -234,15 +275,15 @@ AND [your_searchable_field] LIKE '%search_term%';
 ```sql
 -- Get scan job status and basic info
 SELECT scan_id, status, started_at, completed_at, error_message
-FROM scan_jobs 
+FROM scan_jobs
 WHERE scan_id = 'your-scan-id';
 
 -- Cancel a scan (update status)
-UPDATE scan_jobs 
-SET status = 'cancelled', 
+UPDATE scan_jobs
+SET status = 'cancelled',
     completed_at = CURRENT_TIMESTAMP,
     error_message = 'Cancelled by user'
-WHERE scan_id = 'your-scan-id' 
+WHERE scan_id = 'your-scan-id'
 AND status IN ('pending', 'running');
 ```
 
@@ -257,21 +298,41 @@ AND status IN ('pending', 'running');
 INSERT INTO scan_jobs (
     id, scan_id, status, scan_type, config, organization_id, batch_size
 ) VALUES (
-    'uuid-1', 'my-scan-001', 'pending', 'user_extraction', 
-    '{"auth": {"token": "..."}, "filters": {...}}', 
+    'uuid-1', 'my-scan-001', 'pending', 'user_extraction',
+    '{"auth": {"token": "..."}, "filters": {...}}',
     'org-123', 100
 );
 ```
 
-### Adding Results (Customize with your fields)
+### Adding Results
 
 ```sql
--- Insert scan results - REPLACE with YOUR field names and values
-INSERT INTO [result_table] (
-    id, scan_job_id, [your_field_1], [your_field_2], [your_field_3]
-) VALUES 
-('uuid-3', 'uuid-1', '[value_1]', '[value_2]', '[value_3]'),
-('uuid-4', 'uuid-1', '[value_1]', '[value_2]', '[value_3]');
+-- Insert scan results
+INSERT INTO hubspot_deals (
+    id,
+    scan_job_id,
+    dealname,
+    pipeline,
+    dealstage,
+    amount,
+    closedate,
+    _extracted_at,
+    _scan_id,
+    _organization_id,
+    _source_service
+) VALUES (
+    'uuid-1',
+    'hubspot-deals-test',
+    'Test Deal',
+    'default',
+    'closedwon',
+    10000,
+    '2025-12-31T20:25:34+00',
+    NOW(),
+    'hubspot-deals-test',
+    'test-tenant',
+    'hubspot_deals',
+);
 
 -- Examples for different data types:
 
@@ -288,7 +349,7 @@ INSERT INTO [result_table] (
 -- VALUES ('uuid-3', 'uuid-1', 'evt-001', 'Team Meeting', 'manager@example.com', '2024-01-15 10:00:00');
 
 -- Update scan job progress
-UPDATE scan_jobs 
+UPDATE scan_jobs
 SET processed_items = processed_items + 2,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = 'uuid-1';
@@ -298,18 +359,18 @@ WHERE id = 'uuid-1';
 
 ```sql
 -- Start scan
-UPDATE scan_jobs 
-SET status = 'running', 
-    started_at = CURRENT_TIMESTAMP 
+UPDATE scan_jobs
+SET status = 'running',
+    started_at = CURRENT_TIMESTAMP
 WHERE scan_id = 'my-scan-001';
 
 -- Complete scan
-UPDATE scan_jobs 
-SET status = 'completed', 
+UPDATE scan_jobs
+SET status = 'completed',
     completed_at = CURRENT_TIMESTAMP,
-    success_rate = CASE 
+    success_rate = CASE
         WHEN total_items > 0 THEN ROUND(((total_items - failed_items) * 100.0 / total_items), 2)::TEXT || '%'
-        ELSE '100%' 
+        ELSE '100%'
     END
 WHERE scan_id = 'my-scan-001';
 ```
@@ -319,7 +380,9 @@ WHERE scan_id = 'my-scan-001';
 ## 🔧 Customization Options
 
 ### Result Table Naming
+
 Replace `[result_table]` with your preferred name:
+
 - `scan_results` (generic)
 - `user_results` (specific to user scans)
 - `extraction_results` (for data extraction)
@@ -331,6 +394,7 @@ Replace `[result_table]` with your preferred name:
 **Replace `[result_table]` and customize fields for your specific data:**
 
 **1. User/People Data:**
+
 ```sql
 CREATE TABLE user_results (
     id VARCHAR PRIMARY KEY,
@@ -352,7 +416,8 @@ CREATE TABLE user_results (
 ```
 
 **2. Project/Repository Data:**
-```sql  
+
+```sql
 CREATE TABLE project_results (
     id VARCHAR PRIMARY KEY,
     scan_job_id VARCHAR REFERENCES scan_jobs(id),
@@ -373,9 +438,10 @@ CREATE TABLE project_results (
 ```
 
 **3. Issue/Ticket Data:**
+
 ```sql
 CREATE TABLE issue_results (
-    id VARCHAR PRIMARY KEY,  
+    id VARCHAR PRIMARY KEY,
     scan_job_id VARCHAR REFERENCES scan_jobs(id),
     issue_id VARCHAR UNIQUE,
     issue_key VARCHAR,
@@ -397,6 +463,7 @@ CREATE TABLE issue_results (
 ```
 
 **4. Calendar/Event Data:**
+
 ```sql
 CREATE TABLE calendar_events (
     id VARCHAR PRIMARY KEY,
@@ -420,6 +487,7 @@ CREATE TABLE calendar_events (
 ```
 
 **5. Generic/Flexible Data (when structure varies):**
+
 ```sql
 CREATE TABLE scan_results (
     id VARCHAR PRIMARY KEY,
@@ -438,6 +506,7 @@ CREATE TABLE scan_results (
 ### Additional Columns (Optional Customizations)
 
 **For ScanJob Table:**
+
 ```sql
 -- Add service-specific columns
 ALTER TABLE scan_jobs ADD COLUMN service_name VARCHAR(50);
@@ -452,38 +521,41 @@ ALTER TABLE scan_jobs ADD COLUMN max_retries INTEGER DEFAULT 3;
 ## 📈 Performance Considerations
 
 ### Indexing Strategy
+
 - **Primary Operations**: Index on `scan_id`, `status`, and `created_at`
 - **Filtering**: Index on `organization_id`, `scan_type`, `result_type`
 - **Pagination**: Composite indexes on frequently queried column combinations
 - **Foreign Keys**: Always index foreign key columns
 
 ### Data Retention
+
 ```sql
 -- Archive completed scans older than 90 days
 CREATE TABLE scan_jobs_archive AS SELECT * FROM scan_jobs WHERE FALSE;
 
 -- Move old data
-INSERT INTO scan_jobs_archive 
-SELECT * FROM scan_jobs 
-WHERE status = 'completed' 
+INSERT INTO scan_jobs_archive
+SELECT * FROM scan_jobs
+WHERE status = 'completed'
 AND completed_at < CURRENT_DATE - INTERVAL '90 days';
 
 -- Clean up
-DELETE FROM scan_jobs 
-WHERE status = 'completed' 
+DELETE FROM scan_jobs
+WHERE status = 'completed'
 AND completed_at < CURRENT_DATE - INTERVAL '90 days';
 ```
 
 ### Large Result Sets
+
 ```sql
 -- Partition result table by scan_job_id for very large datasets
-CREATE TABLE [result_table] (
+CREATE TABLE hubspot_deals (
     -- columns as defined above
 ) PARTITION BY HASH (scan_job_id);
 
 -- Create partitions
-CREATE TABLE [result_table]_p0 PARTITION OF [result_table] FOR VALUES WITH (modulus 4, remainder 0);
-CREATE TABLE [result_table]_p1 PARTITION OF [result_table] FOR VALUES WITH (modulus 4, remainder 1);
+CREATE TABLE hubspot_deals_p0 PARTITION OF hubspot_deals FOR VALUES WITH (modulus 4, remainder 0);
+CREATE TABLE hubspot_deals_p1 PARTITION OF hubspot_deals FOR VALUES WITH (modulus 4, remainder 1);
 -- etc.
 ```
 
@@ -492,21 +564,23 @@ CREATE TABLE [result_table]_p1 PARTITION OF [result_table] FOR VALUES WITH (modu
 ## 🛡️ Data Integrity
 
 ### Constraints
+
 ```sql
 -- Ensure valid status values
-ALTER TABLE scan_jobs ADD CONSTRAINT check_valid_status 
+ALTER TABLE scan_jobs ADD CONSTRAINT check_valid_status
 CHECK (status IN ('pending', 'running', 'completed', 'failed', 'cancelled'));
 
 -- Ensure valid priority levels
-ALTER TABLE scan_controls ADD CONSTRAINT check_valid_priority 
+ALTER TABLE scan_controls ADD CONSTRAINT check_valid_priority
 CHECK (priority_level IN ('low', 'normal', 'high', 'urgent'));
 
 -- Ensure positive values
-ALTER TABLE scan_jobs ADD CONSTRAINT check_positive_counts 
+ALTER TABLE scan_jobs ADD CONSTRAINT check_positive_counts
 CHECK (total_items >= 0 AND processed_items >= 0 AND failed_items >= 0);
 ```
 
 ### Triggers
+
 ```sql
 -- Auto-update timestamps
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -517,8 +591,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_scan_jobs_updated_at 
-    BEFORE UPDATE ON scan_jobs 
+CREATE TRIGGER update_scan_jobs_updated_at
+    BEFORE UPDATE ON scan_jobs
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 ```
 
@@ -527,6 +601,7 @@ CREATE TRIGGER update_scan_jobs_updated_at
 ### Usage Guidelines
 
 ### Best Practices
+
 1. **Use appropriate batch sizes** for your data volume to manage memory and performance
 2. **Implement proper error handling** and store error details in `error_message`
 3. **Regular cleanup** of old scan jobs and results based on retention policies
@@ -534,6 +609,7 @@ CREATE TRIGGER update_scan_jobs_updated_at
 5. **Use JSON config** to store flexible scan parameters and authentication details
 
 ### Common Patterns
+
 - **Progress Tracking**: Update `processed_items` and `failed_items` as scan progresses
 - **Error Recovery**: Store detailed error information in `error_message` field
 - **Flexible Configuration**: Use JSON `config` field for scan parameters, auth details, filters
@@ -543,5 +619,5 @@ CREATE TRIGGER update_scan_jobs_updated_at
 ---
 
 **Database Schema Version**: 1.0  
-**Last Updated**: [Current Date]  
+**Last Updated**: 12/10/2025
 **Compatible With**: PostgreSQL, MySQL, SQLite, SQL Server
