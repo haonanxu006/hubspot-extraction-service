@@ -1,6 +1,7 @@
-# [Service Name] - API Documentation
+# HubSpot Deals Extraction Service - API Documentation
 
 ## 📋 Table of Contents
+
 1. [Overview](#overview)
 2. [Authentication](#authentication)
 3. [Base URLs](#base-urls)
@@ -14,36 +15,36 @@
 
 ## 🔍 Overview
 
-[Brief description of what your service does and its main purpose]
+The HubSpot Deals Extraction Service provides API for triggering ETL pipelines that extract CRM Deal records from HubSpot, transform the data, and load it into PostgreSQL using DLT
 
 ### API Version
-- **Version**: [e.g., 1.0.0]
-- **Base Path**: [e.g., `/api/v1`]
+
+- **Version**: 1.0.0
+- **Base Path**: `/api`
 - **Content Type**: `application/json`
 - **Documentation**: Available at `/docs` (Swagger UI)
 
 ### Key Features
-- **[Feature 1]**: [Description]
-- **[Feature 2]**: [Description]
-- **[Feature 3]**: [Description]
-- **[Feature 4]**: [Description]
-- **[Feature 5]**: [Description]
+
+- **HubSpot Deals Extraction**: Start a ETL job using HubSpot CRM API v3
+- **Pagination Support**: Automatically handles HubSpot’s paging.next.after cursor
+- **Checkpointing & Resume Support**: Automatically resumes extraction on pause/failure
+- **Result Access APIs**: Retrieve completed scan results with pagination
 
 ## 🔐 Authentication
 
-[Describe your authentication method - OAuth, API Keys, JWT, etc.]
+The API itself does not require OAuth login. Instead, each extraction request must provide:
 
 ### Required Credentials
-- **[Credential 1]**: [Description]
-- **[Credential 2]**: [Description]
-- **[Credential 3]**: [Description]
+
+- **auth.accessToken**: HubSpot Private App token used for API access
 
 ### Required Permissions
-- `[Permission 1]` - [Description]
-- `[Permission 2]` - [Description]
-- `[Permission 3]` - [Description]
+
+- `crm.objects.deals.read` - Read deal records
 
 ### Authentication Headers
+
 ```
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -52,21 +53,25 @@ Content-Type: application/json
 ## 🌐 Base URLs
 
 ### Development
+
 ```
 http://localhost:[PORT]
 ```
 
 ### Staging
+
 ```
 https://staging-api.your-domain.com
 ```
 
 ### Production
+
 ```
 https://api.your-domain.com
 ```
 
 ### Swagger Documentation
+
 ```
 http://localhost:[PORT]/docs
 ```
@@ -74,6 +79,7 @@ http://localhost:[PORT]/docs
 ## 📊 Common Response Formats
 
 ### Success Response
+
 ```json
 {
   "status": "success",
@@ -84,6 +90,7 @@ http://localhost:[PORT]/docs
 ```
 
 ### Error Response (Validation)
+
 ```json
 {
   "status": "error",
@@ -96,6 +103,7 @@ http://localhost:[PORT]/docs
 ```
 
 ### Error Response (Application Logic)
+
 ```json
 {
   "status": "error",
@@ -107,6 +115,7 @@ http://localhost:[PORT]/docs
 ```
 
 ### Pagination Response
+
 ```json
 {
   "pagination": {
@@ -131,39 +140,44 @@ http://localhost:[PORT]/docs
 Initiates a new calendar extraction process for the specified environment.
 
 #### Request Body
+
 ```json
 {
   "config": {
-    "scanId": "unique-scan-identifier",
-    "type": ["calendar"],
+    "scanId": "hubspot-deals-test",
+    "type": ["user"],
+    "organizationId": "test-tenant",
     "auth": {
-      "[auth_key_1]": "[auth_value_1]",
-      "[auth_key_2]": "[auth_value_2]",
-      "[auth_key_n]": "[auth_value_n]"
+      "accessToken": "your-hubspot-private-app-token"
     },
-    "dateRange": {
-      "startDate": "2024-01-01",
-      "endDate": "2024-12-31"
-    },
-    "user_upns": [
-      "user1@company.com",
-      "user2@company.com"
-    ]
+    "filters": {
+      "properties": [
+        "dealname",
+        "amount",
+        "dealstage",
+        "closedate",
+        "pipeline",
+        "description",
+        "dealtype"
+      ]
+    }
   }
 }
 ```
 
 #### Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `config.scanId` | string | Yes | Unique identifier for the scan (alphanumeric, hyphens, underscores only, max 255 chars) |
-| `config.type` | array | Yes | Service types to scan (must include "calendar") |
-| `config.auth.[auth_keys]` | string | Yes | Authentication credentials (service-specific keys and values) |
-| `config.dateRange.startDate` | string | Yes | Start date (YYYY-MM-DD format) |
-| `config.dateRange.endDate` | string | Yes | End date (YYYY-MM-DD format) |
-| `config.user_upns` | array | No | List of user emails to extract (optional) |
+
+| Parameter                    | Type   | Required | Description                                                                             |
+| ---------------------------- | ------ | -------- | --------------------------------------------------------------------------------------- |
+| `config.scanId`              | string | Yes      | Unique identifier for the scan (alphanumeric, hyphens, underscores only, max 255 chars) |
+| `config.type`                | array  | Yes      | Service types to scan (must include "calendar")                                         |
+| `config.auth.[auth_keys]`    | string | Yes      | Authentication credentials (service-specific keys and values)                           |
+| `config.dateRange.startDate` | string | Yes      | Start date (YYYY-MM-DD format)                                                          |
+| `config.dateRange.endDate`   | string | Yes      | End date (YYYY-MM-DD format)                                                            |
+| `config.user_upns`           | array  | No       | List of user emails to extract (optional)                                               |
 
 #### Response
+
 ```json
 {
   "message": "Calendar extraction started",
@@ -173,6 +187,7 @@ Initiates a new calendar extraction process for the specified environment.
 ```
 
 #### Status Codes
+
 - **202**: Extraction started successfully
 - **400**: Invalid request data
 - **409**: Extraction already in progress
@@ -187,11 +202,13 @@ Initiates a new calendar extraction process for the specified environment.
 Retrieves the current status of an extraction process.
 
 #### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `scan_id` | string | Yes | Unique scan identifier |
+
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| `scan_id` | string | Yes      | Unique scan identifier |
 
 #### Response (Existing Extraction)
+
 ```json
 {
   "id": "internal-job-id",
@@ -213,6 +230,7 @@ Retrieves the current status of an extraction process.
 ```
 
 #### Response (Non-existent Extraction)
+
 ```json
 {
   "id": null,
@@ -227,6 +245,7 @@ Retrieves the current status of an extraction process.
 ```
 
 #### Status Values
+
 - **pending**: Extraction queued but not started
 - **running**: Extraction in progress
 - **completed**: Extraction finished successfully
@@ -235,6 +254,7 @@ Retrieves the current status of an extraction process.
 - **not_found**: Extraction does not exist
 
 #### Status Codes
+
 - **200**: Always returns 200 (check `status` field for actual state)
 - **400**: Invalid scan ID format
 
@@ -247,11 +267,13 @@ Retrieves the current status of an extraction process.
 Cancels an ongoing extraction process.
 
 #### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `scan_id` | string | Yes | Unique scan identifier |
+
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| `scan_id` | string | Yes      | Unique scan identifier |
 
 #### Response
+
 ```json
 {
   "message": "Extraction cancelled successfully",
@@ -261,6 +283,7 @@ Cancels an ongoing extraction process.
 ```
 
 #### Status Codes
+
 - **200**: Extraction cancelled successfully
 - **400**: Invalid scan ID format or extraction cannot be cancelled
 - **404**: Extraction not found
@@ -275,11 +298,13 @@ Cancels an ongoing extraction process.
 Removes an extraction and all associated data from the system.
 
 #### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `scan_id` | string | Yes | Unique scan identifier |
+
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| `scan_id` | string | Yes      | Unique scan identifier |
 
 #### Response
+
 ```json
 {
   "message": "Extraction and 1,234 events removed successfully",
@@ -289,6 +314,7 @@ Removes an extraction and all associated data from the system.
 ```
 
 #### Status Codes
+
 - **200**: Extraction removed successfully
 - **400**: Invalid scan ID format or extraction cannot be removed
 - **404**: Extraction not found
@@ -303,17 +329,20 @@ Removes an extraction and all associated data from the system.
 Retrieves paginated extraction results with full event details.
 
 #### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `scan_id` | string | Yes | Unique scan identifier |
+
+| Parameter | Type   | Required | Description            |
+| --------- | ------ | -------- | ---------------------- |
+| `scan_id` | string | Yes      | Unique scan identifier |
 
 #### Query Parameters
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `page` | integer | No | 1 | Page number (minimum: 1) |
-| `page_size` | integer | No | 100 | Events per page (1-1000) |
+
+| Parameter   | Type    | Required | Default | Description              |
+| ----------- | ------- | -------- | ------- | ------------------------ |
+| `page`      | integer | No       | 1       | Page number (minimum: 1) |
+| `page_size` | integer | No       | 100     | Events per page (1-1000) |
 
 #### Response
+
 ```json
 {
   "scanId": "unique-scan-identifier",
@@ -338,6 +367,7 @@ Retrieves paginated extraction results with full event details.
 ```
 
 #### Status Codes
+
 - **200**: Results retrieved successfully
 - **400**: Invalid scan ID format or pagination parameters
 - **404**: Extraction not found
@@ -352,29 +382,35 @@ Retrieves paginated extraction results with full event details.
 Downloads extraction results in the specified format.
 
 #### Path Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `scan_id` | string | Yes | Unique scan identifier |
-| `format` | string | Yes | Download format (json, csv, excel) |
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `scan_id` | string | Yes      | Unique scan identifier             |
+| `format`  | string | Yes      | Download format (json, csv, excel) |
 
 #### Supported Formats
+
 - **json**: JSON format with pretty printing
 - **csv**: Comma-separated values with headers
 - **excel**: Microsoft Excel (.xlsx) format
 
 #### Response
+
 File download with appropriate content-type and Content-Disposition headers:
+
 - **JSON**: `Content-Type: application/json`
 - **CSV**: `Content-Type: text/csv`
 - **Excel**: `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
 #### Status Codes
+
 - **200**: File download initiated
 - **400**: Invalid scan ID format or unsupported format
 - **404**: Extraction not found
 - **500**: Internal server error
 
 #### Example URLs
+
 ```
 GET /scan/download/my-scan-001/json
 GET /scan/download/my-scan-001/csv
@@ -392,6 +428,7 @@ GET /scan/download/my-scan-001/excel
 Returns the overall health status of the service.
 
 #### Response (Healthy)
+
 ```json
 {
   "status": "healthy",
@@ -407,6 +444,7 @@ Returns the overall health status of the service.
 ```
 
 #### Response (Unhealthy)
+
 ```json
 {
   "status": "unhealthy",
@@ -422,6 +460,7 @@ Returns the overall health status of the service.
 ```
 
 #### Status Codes
+
 - **200**: Service is healthy
 - **503**: Service is unhealthy
 
@@ -434,6 +473,7 @@ Returns the overall health status of the service.
 Returns comprehensive service statistics and performance metrics.
 
 #### Response
+
 ```json
 {
   "total_requests": 15000,
@@ -449,6 +489,7 @@ Returns comprehensive service statistics and performance metrics.
 ```
 
 #### Status Codes
+
 - **200**: Statistics retrieved successfully
 - **500**: Internal server error
 
@@ -459,7 +500,9 @@ Returns comprehensive service statistics and performance metrics.
 ### Error Response Formats
 
 #### Validation Errors (400)
+
 Returned for input validation failures:
+
 ```json
 {
   "status": "error",
@@ -473,6 +516,7 @@ Returned for input validation failures:
 ```
 
 #### Authentication Errors (401)
+
 ```json
 {
   "status": "error",
@@ -483,6 +527,7 @@ Returned for input validation failures:
 ```
 
 #### Authorization Errors (403)
+
 ```json
 {
   "status": "error",
@@ -493,6 +538,7 @@ Returned for input validation failures:
 ```
 
 #### Not Found Errors (404)
+
 ```json
 {
   "status": "error",
@@ -504,6 +550,7 @@ Returned for input validation failures:
 ```
 
 #### Conflict Errors (409)
+
 ```json
 {
   "status": "error",
@@ -515,6 +562,7 @@ Returned for input validation failures:
 ```
 
 #### Rate Limit Errors (429)
+
 ```json
 {
   "status": "error",
@@ -526,6 +574,7 @@ Returned for input validation failures:
 ```
 
 #### Server Errors (500)
+
 ```json
 {
   "status": "error",
@@ -538,15 +587,15 @@ Returned for input validation failures:
 
 ### Common Error Codes
 
-| Code | Description |
-|------|-------------|
-| `VALIDATION_ERROR` | Input validation failed |
-| `UNAUTHORIZED` | Authentication required |
-| `FORBIDDEN` | Insufficient permissions |
-| `NOT_FOUND` | Resource not found |
-| `CONFLICT` | Resource already exists |
-| `RATE_LIMIT_EXCEEDED` | Too many requests |
-| `INTERNAL_ERROR` | Server error |
+| Code                  | Description                     |
+| --------------------- | ------------------------------- |
+| `VALIDATION_ERROR`    | Input validation failed         |
+| `UNAUTHORIZED`        | Authentication required         |
+| `FORBIDDEN`           | Insufficient permissions        |
+| `NOT_FOUND`           | Resource not found              |
+| `CONFLICT`            | Resource already exists         |
+| `RATE_LIMIT_EXCEEDED` | Too many requests               |
+| `INTERNAL_ERROR`      | Server error                    |
 | `SERVICE_UNAVAILABLE` | Service temporarily unavailable |
 
 ---
@@ -556,6 +605,7 @@ Returned for input validation failures:
 ### Complete Extraction Workflow
 
 #### 1. Start Extraction
+
 ```bash
 curl -X POST "https://api.your-domain.com/scan/start" \
   -H "Content-Type: application/json" \
@@ -580,16 +630,19 @@ curl -X POST "https://api.your-domain.com/scan/start" \
 ```
 
 #### 2. Monitor Progress
+
 ```bash
 curl "https://api.your-domain.com/scan/status/weekly-sync-001"
 ```
 
 #### 3. Get Results
+
 ```bash
 curl "https://api.your-domain.com/scan/result/weekly-sync-001?page=1&page_size=50"
 ```
 
 #### 4. Download Results
+
 ```bash
 # Download as CSV
 curl "https://api.your-domain.com/scan/download/weekly-sync-001/csv" \
@@ -605,11 +658,13 @@ curl "https://api.your-domain.com/scan/download/weekly-sync-001/json" \
 ```
 
 #### 5. Cancel Extraction (if needed)
+
 ```bash
 curl -X POST "https://api.your-domain.com/scan/cancel/weekly-sync-001"
 ```
 
 #### 6. Remove Extraction (cleanup)
+
 ```bash
 curl -X DELETE "https://api.your-domain.com/scan/remove/weekly-sync-001"
 ```
@@ -617,6 +672,7 @@ curl -X DELETE "https://api.your-domain.com/scan/remove/weekly-sync-001"
 ### PowerShell Examples
 
 #### Start Extraction
+
 ```powershell
 $body = @{
   config = @{
@@ -638,11 +694,13 @@ Invoke-RestMethod -Uri "https://api.your-domain.com/scan/start" -Method Post -Bo
 ```
 
 #### Get Status
+
 ```powershell
 Invoke-RestMethod -Uri "https://api.your-domain.com/scan/status/powershell-test-001"
 ```
 
 #### Download Results
+
 ```powershell
 # Download Excel file
 Invoke-WebRequest -Uri "https://api.your-domain.com/scan/download/powershell-test-001/excel" -OutFile "results.xlsx"
@@ -654,6 +712,7 @@ Invoke-WebRequest -Uri "https://api.your-domain.com/scan/download/powershell-tes
 ### Python Examples
 
 #### Start Extraction
+
 ```python
 import requests
 
@@ -679,6 +738,7 @@ print(response.json())
 ```
 
 #### Monitor Progress
+
 ```python
 import requests
 import time
@@ -689,16 +749,17 @@ url = f"https://api.your-domain.com/scan/status/{scan_id}"
 while True:
     response = requests.get(url)
     status = response.json()
-    
+
     print(f"Status: {status['status']}")
-    
+
     if status['status'] in ['completed', 'failed', 'cancelled', 'not_found']:
         break
-    
+
     time.sleep(10)  # Check every 10 seconds
 ```
 
 #### Get Paginated Results
+
 ```python
 import requests
 
@@ -709,14 +770,14 @@ all_events = []
 while True:
     url = f"https://api.your-domain.com/scan/result/{scan_id}?page={page}&page_size=100"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         all_events.extend(data['data'])
-        
+
         if not data['pagination']['has_next']:
             break
-        
+
         page += 1
     else:
         print(f"Error: {response.status_code}")
@@ -726,6 +787,7 @@ print(f"Total events retrieved: {len(all_events)}")
 ```
 
 #### Download Results
+
 ```python
 import requests
 
@@ -736,7 +798,7 @@ formats = ['json', 'csv', 'excel']
 for fmt in formats:
     url = f"https://api.your-domain.com/scan/download/{scan_id}/{fmt}"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         filename = f"calendar_results.{fmt if fmt != 'excel' else 'xlsx'}"
         with open(filename, 'wb') as f:
@@ -747,5 +809,7 @@ for fmt in formats:
 ```
 
 #### Error Handling
+
 ```python
 import requests
+```
