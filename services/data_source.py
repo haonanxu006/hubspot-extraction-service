@@ -2,9 +2,8 @@ import dlt
 import logging
 from typing import Dict, List, Any, Iterator, Optional, Callable
 from datetime import datetime, timezone
-from .api_service import APIService
 from loki_logger import get_logger, log_business_event, log_security_event
-from .api_service import APIService
+from .hubspot_api_service import HubSpotAPIService
 
 def create_data_source(
     job_config: Dict[str, Any],
@@ -19,7 +18,8 @@ def create_data_source(
     Create DLT source function for Hubspot_Deals data extraction with checkpoint support
     """
     logger = get_logger(__name__)
-    api_service = APIService(base_url="https://api.hubapi.com" , test_delay_seconds=1)
+    # Instantiate HubSpot API Service
+    api_service = HubSpotAPIService(base_url="https://api.hubapi.com" , test_delay_seconds=1)
 
     access_token = auth_config.get("accessToken")
     if not access_token:
@@ -39,6 +39,24 @@ def create_data_source(
             "job_config": job_config,
         },
     )
+
+    # Transform deal record
+    def transform_deal_record(record_props: Dict[str, Any], filter_props: Optional[List[Any]], id: str) -> Dict[str, Any]:
+        output = {"id": id}
+        # Use filters if exists
+        props = filter_props if filter_props is not None else record_props.keys()
+        for prop in props:
+            if prop not in record_props: 
+                continue
+
+            prop_val = record_props.get(prop)
+
+            if prop == "amount": # convert float
+                prop_val = float(prop_val)
+            
+            output[prop] = prop_val
+        
+        return output
 
     @dlt.resource(name="hubspot_deals", write_disposition="replace", primary_key="id")
     def get_main_data() -> Iterator[Dict[str, Any]]:
@@ -177,15 +195,15 @@ def create_data_source(
                     },
                 )
 
-                # TODO: Replace with appropriate Hubspot_Deals API call
-                data = api_service.get_data(
-                    access_token=access_token, limit=1, after=after,
+                # Call HubSpot API Service get deals to instantiate api call to HubSpot
+                data = api_service.get_deals(
+                    access_token=access_token, limit=100, after=after,
                 )
 
                 page_records = 0
 
-                # TODO: Update data processing based on Hubspot_Deals response structure
-                data_key = "results"  # Update based on API response
+                # Process response data into proper format
+                data_key = "results" 
                 if data_key in data and data[data_key]:
                     for record in data[data_key]:
                         # Check for pause/cancel even within record processing for faster response
@@ -229,29 +247,23 @@ def create_data_source(
                                     )
                             return  # Exit the generator
 
-                        # Filter properties if specified
-                        if "properties" in filters and filters["properties"]:
-                            filtered_record = {
-                                prop: record.get(prop)
-                                for prop in filters["properties"]
-                                if prop in record
-                            }
-                            filtered_record["id"] = record.get("id")  # Always keep ID
-                        else:
-                            filtered_record = record
+                        # Tranform deal record
+                        filtered_record = transform_deal_record(
+                            record.get("properties"),
+                            filters.get("properties"),
+                            record.get("id"),
+                        )
 
                         # Add extraction metadata
-                        filtered_record.update(
-                            {
-                                "_extracted_at": datetime.now(timezone.utc).isoformat(),
-                                "_scan_id": filters.get("scan_id", "unknown"),
-                                "_organization_id": filters.get(
-                                    "organization_id", "unknown"
-                                ),
-                                "_page_number": page_count + 1,
-                                "_source_service": "hubspot_deals",
-                            }
-                        )
+                        filtered_record.update({
+                            "_extracted_at": datetime.now(timezone.utc).isoformat(),
+                            "_scan_id": filters.get("scan_id", "unknown"),
+                            "_organization_id": filters.get(
+                                "organization_id", "unknown"
+                            ),
+                            "_page_number": page_count + 1,
+                            "_source_service": "hubspot_deals",
+                        })
 
                         yield filtered_record
                         page_records += 1
@@ -263,7 +275,7 @@ def create_data_source(
                 # Save checkpoint periodically
                 if checkpoint_callback and page_count % checkpoint_interval == 0:
                     try:
-                        # TODO: Update pagination logic based on Hubspot_Deals API
+                        # Retrieve after cursor from reponse data
                         next_cursor = None
                         if (
                             data.get("paging")
@@ -307,18 +319,19 @@ def create_data_source(
                             },
                         )
 
-                # TODO: Handle pagination based on Hubspot_Deals API response
-                if (
-                    data.get("paging")
-                    and data["paging"].get("next")
-                    and data["paging"]["next"].get("after")
-                ):
-                    after = data["paging"]["next"]["after"]
-                elif data.get("has_more"):
-                    after = data.get("next_cursor")
-                elif data.get("next_page_token"):
-                    after = data.get("next_page_token")
+                # Retrieve after cursor from reponse data
+                next_cursor = (
+                    data.get("paging", {})
+                        .get("next", {})
+                        .get("after")
+                )
+
+                if next_cursor:
+                    after = next_cursor
                 else:
+                    after = None
+                
+                if not after:
                     # Final checkpoint on completion
                     if checkpoint_callback:
                         try:
