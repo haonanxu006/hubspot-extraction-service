@@ -36,7 +36,7 @@ Swagger UI:
 
 ## Core API Endpoints
 
-# 1. Start a Scan Job
+### 1. Start a Scan Job
 
 `POST /scan/start` : Starts a HubSpot Deals extraction job.
 
@@ -77,7 +77,7 @@ Response Example:
 
 ---
 
-# 2. Check Scan Status
+### 2. Check Scan Status
 
 `GET /scan/{scanId}/status` : Retrieve the current state of an extraction job.
 
@@ -103,7 +103,7 @@ Response Example:
 
 ---
 
-# 3. List Tables for a Scan
+### 3. List Tables for a Scan
 
 `GET /results/{scanId}/tables` : Return a list of all tables generated for a given scan job.
 
@@ -130,7 +130,7 @@ Response Example:
 
 ---
 
-# 4. Get Extracted Deal Records
+### 4. Get Extracted Deal Records
 
 `GET /results/{scanId}/result?tableName=[tableName]` : Fetch the deal records extracted by the pipeline.
 
@@ -171,7 +171,7 @@ Response Example:
 
 ---
 
-# 5. Health Check
+### 5. Health Check
 
 `GET /health` : Used to verify that the service, database connections, and background worker system are operational.
 
